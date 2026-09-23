@@ -110,7 +110,7 @@ existed.
 ```
 cd backend  && php artisan test    # 232 tests
 cd frontend && npm test            # 96 tests  (Vitest + Testing Library)
-cd frontend && npm run test:e2e    # 23 specs  (Playwright, needs the API running)
+cd frontend && npm run test:e2e    # 27 specs  (Playwright, needs the API running)
 ```
 
 All three run in CI on every push. The browser suite is the only one that can
@@ -176,6 +176,30 @@ One cron entry runs Laravel's scheduler; everything else is defined in code:
 
 That covers reminders, automations (`automations:run`), abandonment detection,
 retention enforcement and export purging. Staff never see or write cron syntax.
+
+## Caching personalized pages
+
+`/application-status/*`, `/resume/*`, `/apply/*` and `/student*` render content
+belonging to one applicant. They are served with `Pragma: no-cache`,
+`X-Accel-Expires: 0` and `X-Robots-Tag: noindex`, and the public catalogue
+deliberately carries none of those.
+
+**`Cache-Control` must be set at the edge.** Next reserves that header for
+dynamically rendered pages and overrides anything the application sets, so it
+always sends `no-cache, must-revalidate`. That requires a conforming shared
+cache to revalidate before serving, but a cache that ignores it would be free to
+store the body. Close that in the reverse proxy — for nginx:
+
+```nginx
+location ~ ^/(application-status|resume|apply|student) {
+    add_header Cache-Control "no-store, private" always;
+    proxy_no_cache 1;
+    proxy_cache_bypass 1;
+}
+```
+
+`/student` matters most: it is the same URL for every signed-in applicant, so a
+path-keyed cache is the one case that could cross applicants.
 
 ## Required production configuration
 

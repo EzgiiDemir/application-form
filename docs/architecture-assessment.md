@@ -200,3 +200,94 @@ Ordered so that destructive work happens only after the replacement exists.
 - **Tests encode the current behaviour.** 334 tests pass today. Removing the
   applicant portal will legitimately break the student-portal tests; those should
   be deleted deliberately, not patched into passing.
+
+---
+
+## 6. Sections 32–70
+
+Same assumption as section 1: WordPress-specific wording (custom post types, WP
+capabilities, wp-cron, Theme/Plugin editors) describes the system being retired,
+not a target to rebuild into. Sections that exist only inside WordPress are
+marked N/A with the equivalent named.
+
+### Already built
+
+| § | Requirement | Where |
+| --- | --- | --- |
+| 39 | File upload security | `SecureFileService` — extension **and** MIME allowlists (per field, then global), size limits, generated names, `SubmissionFileAudit`, protected download controller |
+| 40 | Privacy / KVKK as a real module | `ConsentDefinition`, `ConsentRecord`, `PrivacyPolicyVersion` — consent is versioned, so historic consent is not rewritten when text changes |
+| 41 | Data subject requests | `DataSubjectRequest` + `DataSubjectRequestService` |
+| 42 | Retention and legal hold | `RetentionPolicy`, `DataRetentionService`, scheduled purges |
+| 45 | Form duplication | `FormSchemaService::duplicate()`, exposed as "Make a copy"; submissions are not copied |
+| 46 | Form versioning | `FormVersion` + `form_version_id` on every submission; answers keep per-version field uuids |
+| 47 | Templates | `FormTemplate`, `BuiltInFormTemplateService` |
+| 49 | Webhooks | `WebhookEndpoint`, `WebhookDelivery`, `WebhookService` |
+| 50 | Versioned REST API | `/api/v1`, permission-checked, validated, paginated |
+| 51 | Custom tables, not meta abuse | 104 tables; answers additionally projected into typed columns for reporting |
+| 52 | Service architecture | ~70 services; no business logic in admin templates |
+| 54 | Audit log | `AuditLogService`, `AuditTrailService`, spatie/activitylog |
+| 56 | Deadlines and timezone | `FormAvailabilityService`, one policy, server-authoritative |
+| 59 | Server-authoritative validation | Laravel validation owns it; the client only improves UX |
+| 60 | Submission idempotency | `idempotency_key` on `form_submissions`, hashed and replayed |
+| 61 | Spam defence without WPForms | honeypot (`_website`), timing (`_started_at`), per-IP rate limits split browse vs apply |
+| 64 | Search | submission search across reference, name, email, phone |
+| 67 | Clean application URLs | `/apply/{slug}` plus `RouteAlias` redirects when a slug changes |
+
+### Not applicable, with the equivalent named
+
+- **§32 — the "Events" concept does not exist here.** Nothing to redesign:
+  forms attach to publications, categories, audiences and pages already.
+  (`application_events` is the audit trail, not form placement.)
+- **§35/36 — WordPress admin screens.** Posts, Media, Appearance, Plugins,
+  Theme/Plugin editors have no counterpart. The Filament panels already group
+  navigation along the lines section 35 describes.
+- **§37 — file manager / code editor.** None exists, and none should be added.
+  This is the good outcome: there is no executable-code editing surface to
+  restrict.
+- **§66 — shortcodes and blocks.** The equivalent is the `/apply/{slug}` route;
+  embedding is a link, not a shortcode.
+
+### Gaps
+
+1. **§33/§34 — page and SEO metadata (real gap).** `site_pages` has only
+   `id, title, slug, status, created_by`. Missing: content, parent, template,
+   order, meta title, meta description, canonical, robots, featured image. No
+   slug-collision guard.
+2. **§44 — workflow visualisation.** The engine exists; nothing shows an admin
+   what happens after submission.
+3. **§53 — domain events are thin.** Two exist (`ApplicationSubmitted`,
+   `ApplicationStatusChanged`) against the nine section 53 lists.
+4. **§55 — duplicate prevention is not configurable.** `CandidateDuplicateService`
+   scans, but there are no per-form rules (allow / warn / block / update
+   existing / manual review) keyed on email, national id, passport or phone.
+5. **§48 — configuration import/export.** Form duplication exists; portable
+   JSON export of schema + settings + notifications is not implemented.
+6. **§57 — localisation is partial.** Translation columns exist
+   (`labels`, `title_translations`, `description_translations`), but Turkish
+   strings are still hardcoded in several services.
+7. **§58 — accessibility is unverified.** No automated checks; the builder's
+   drag-and-drop needs a confirmed keyboard path.
+8. **§65 — exam/post synchronisation.** No dedicated sync service exists. The
+   original requirement ("exam fields add posts senkronizasyon") needs
+   clarifying against the legacy behaviour before anything is designed.
+
+### Closed in this pass
+
+- **§69 — cache safety for personalized pages.** `/application-status/*`,
+  `/resume/*`, `/apply/*` and `/student*` now send `Pragma: no-cache`,
+  `X-Accel-Expires: 0` and `X-Robots-Tag: noindex`, and the public catalogue
+  sends none of them.
+
+  `Cache-Control` could **not** be set from the application: Next reserves it for
+  dynamic pages and silently replaced it (verified — the three headers above
+  arrive, a Cache-Control entry did not). It must be set at the reverse proxy;
+  the README carries the nginx snippet. `/student` is the sharpest case, being
+  the same URL for every signed-in applicant.
+
+### Deliberately not done
+
+- **§43 — removing quiz analytics.** The section says remove it "if it has no
+  purpose". It has one: `QuizEngine` scores forms that set `quiz_type`, and
+  `QuizResult` holds those scores. Deleting it would break quiz-type forms, so
+  this needs a decision about whether quiz forms are still wanted rather than a
+  silent removal.
