@@ -108,9 +108,9 @@ existed.
 ## Tests
 
 ```
-cd backend  && php artisan test    # 216 tests
+cd backend  && php artisan test    # 232 tests
 cd frontend && npm test            # 96 tests  (Vitest + Testing Library)
-cd frontend && npm run test:e2e    # 22 specs  (Playwright, needs the API running)
+cd frontend && npm run test:e2e    # 23 specs  (Playwright, needs the API running)
 ```
 
 All three run in CI on every push. The browser suite is the only one that can
@@ -118,6 +118,18 @@ catch a CORS failure, a broken drag-and-drop or a session cookie scoped to the
 wrong hostname, because all three are enforced by the browser and nowhere else.
 It needs the API on `http://127.0.0.1:8010` and starts the frontend itself on
 port 3101.
+
+## Checking an application's status
+
+Applicants have no account. On submission the platform issues a tracking token
+and the applicant reaches `/application-status/{token}`, which shows the
+reference, the current status and a timeline.
+
+The token is the whole credential, so: it is the only thing in the URL (never a
+database id, email or national id), it is stored hashed, it expires and can be
+revoked, it cannot be used to edit the application, and the page is `noindex`.
+Unknown, revoked and expired tokens all answer identically, so nobody can probe
+which tokens exist.
 
 ## Reporting and analytics
 

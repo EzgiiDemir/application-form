@@ -119,15 +119,30 @@ Missing: the status endpoint is `api/v1/applications/{uuid}/status` — keyed by
 route backed by a dedicated, revocable, optionally single-use tracking token,
 plus the applicant-facing page.
 
-### 3.3 §4 — status definitions are too thin
+### 3.3 §4 — statuses are hardcoded; the configurable table is dead code
 
-`application_status_definitions` currently has:
-`key, labels, color, is_terminal, applicant_visible, order`.
+A first pass at this table is misleading. `application_status_definitions`
+exists with `key, labels, color, is_terminal, applicant_visible, order` — but:
 
-Missing against §4: `icon`, `description`, separate admin vs applicant labels
-(if `labels` is not already doing this per locale), `email_applicant_on_entry`,
-`triggers_workflow`, and `allowed_transitions`. Transitions in particular are
-what stop an application moving from Rejected back to Draft by accident.
+- the table is **empty**, and
+- `ApplicationStatusDefinition` is referenced by **no file except its own model**.
+
+The statuses actually in use are hardcoded PHP constants in
+`app/Support/ApplicationStage.php` (16 of them, with a hardcoded Turkish label
+map), plus parallel `decision_status` and `enrollment_status` columns. This is
+exactly what §4 rules out: *"Statuses must NOT be hardcoded. Admin must be able
+to create statuses."*
+
+So this is not a matter of adding columns. It needs:
+
+- seeding the definition table from the current constants, so nothing breaks
+- an admin resource to manage them
+- `allowed_transitions`, `icon`, `description`, `email_applicant_on_entry`,
+  `triggers_workflow`
+- migrating every read of `ApplicationStage::` to the table, keeping the
+  constants only as seed data and as keys
+
+This is the second-largest item after the grid, not a small one.
 
 ### 3.4 §9 — the 12-column grid
 
