@@ -291,3 +291,67 @@ marked N/A with the equivalent named.
   `QuizResult` holds those scores. Deleting it would break quiz-type forms, so
   this needs a decision about whether quiz forms are still wanted rather than a
   silent removal.
+
+---
+
+## 7. Section 100 — WPForms independence
+
+**The platform has no runtime dependency on WPForms.** Verified rather than
+assumed:
+
+- **No package dependency.** Neither `composer.json` nor `package.json`
+  references WPForms.
+- **No runtime coupling.** Twenty files mention WPForms. All are one-way import
+  tooling (`WpformsImportService`, `WpformsRemoteClient`, `Migration/*`, the
+  import admin pages and commands). The two mentions inside runtime models —
+  `FormField` and `SubmissionValue` — are **comments** explaining why field
+  uuids exist, not code paths.
+- **No legacy database access in the application.** The legacy connection is
+  used only by `WordPressDatabaseReader`, which is guarded: `available()` returns
+  false unless `wordpress_mysql` is configured, and calls throw a clear error
+  rather than failing obscurely. Rendering a form, saving a draft and submitting
+  an application never touch it.
+- **The one admin link** to the import page is permission-gated
+  (`forms.create`).
+
+If WPForms were deactivated and deleted tomorrow, the platform keeps working;
+only the import screens would have nothing to read. That is section 100's
+requirement, and section 101's requirement to keep the importer, satisfied at
+the same time.
+
+The import tooling should therefore be **kept, not removed** — it is the
+migration path, and it already produces the migrated/skipped/unsupported/failed
+reporting section 101 asks for (`ImportBatch`, `LegacyMapping`,
+`MigrationReconciliationService`).
+
+---
+
+## 8. Section 112 — roles and capabilities
+
+11 roles over **44 granular permissions**, enforced server-side via
+spatie/laravel-permission. Capabilities, not role-name checks, are what the
+policies test — section 28's requirement.
+
+| Role | Permissions |
+| --- | --- |
+| super_admin | 44 |
+| application_admin | 30 |
+| faculty_admin | 18 |
+| admissions_officer | 12 |
+| department_secretary | 7 |
+| reporting_user | 6 |
+| technical_administrator | 5 |
+| trainer | 5 |
+| faculty_reviewer | 4 |
+| read_only | 3 |
+| student | 1 |
+
+Relevant to sections 2 and 104: `student` (1 permission) and `trainer` (5) are
+the two roles scheduled for removal. Their small surface is a good sign — the
+removal is contained, and `faculty_reviewer` already exists as the reviewer role
+that section 28 names.
+
+The remaining points of section 112 are answered above: architecture map and
+modules in section 1, storage model in sections 2 and 6, form/submission flow in
+section 3.2, reusable components throughout, removals in section 3.1, and
+implementation order in section 4.
