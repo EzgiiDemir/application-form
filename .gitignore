@@ -1,0 +1,41 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Laravel
+backend/vendor/
+backend/node_modules/
+backend/storage/*.key
+backend/storage/logs/
+backend/bootstrap/cache/*.php
+!backend/bootstrap/cache/.gitignore
+
+# Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/build.out.log
+frontend/build.err.log
+backend/storage/logs/composer-install.out.log
+backend/storage/logs/composer-install.err.log
+
+# Runtime data imported from the legacy site
+backend/storage/app/migration-source/forms/*
+backend/storage/app/migration-source/entries/*
+backend/storage/app/migration-source/files/*
+backend/storage/app/migration-source/design-reference/*
+!backend/storage/app/migration-source/**/.gitignore
+
+# Playwright output
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/.playwright/
+
+# backend/ and frontend/ are their own git repositories, each with its own
+# history. Tracking them here would store only a gitlink -- a commit that looks
+# like it contains the code but does not.
+/backend/
+/frontend/

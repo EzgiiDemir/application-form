@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql, redis
+      - uses: ramsey/composer-install@v3
+      - run: cp .env.example .env
+      - run: php artisan key:generate
+      - run: php artisan test
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  # Browser-level tests need the real stack: a database, the API and the
+  # frontend. This is the only job that can catch a CORS or drag-and-drop
+  # failure, because both are enforced by the browser and nowhere else.
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      # Laravel's dotenv does not overwrite variables already in the
+      # environment, so these override .env.example for this job only.
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_DATABASE: arucad_apply
+      DB_USERNAME: arucad
+      DB_PASSWORD: arucad
+      # The browser specs sign in as an administrator to drive the builder.
+      LOCAL_DEMO_MODE: 'true'
+      # The frontend under test is served on 3101 by Playwright.
+      PUBLIC_URL: http://127.0.0.1:3101
+      FRONTEND_URL: http://127.0.0.1:3101
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8010/api
+      NEXT_PUBLIC_BACKEND_URL: http://127.0.0.1:8010
+      API_URL: http://127.0.0.1:8010
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: arucad_apply
+          POSTGRES_USER: arucad
+          POSTGRES_PASSWORD: arucad
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql
+
+      - uses: ramsey/composer-install@v3
+        with:
+          working-directory: backend
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Prepare the API
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan migrate --seed --force
+
+      - name: Start the API
+        working-directory: backend
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8010 &
+          npx --yes wait-on http://127.0.0.1:8010/up --timeout 60000
+
+      - name: Build the frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run build
+
+      - name: Run the browser tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Keep the failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
