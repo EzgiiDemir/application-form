@@ -108,7 +108,7 @@ existed.
 ## Tests
 
 ```
-cd backend  && php artisan test    # 232 tests
+cd backend  && php artisan test    # 241 tests
 cd frontend && npm test            # 96 tests  (Vitest + Testing Library)
 cd frontend && npm run test:e2e    # 27 specs  (Playwright, needs the API running)
 ```
@@ -118,6 +118,23 @@ catch a CORS failure, a broken drag-and-drop or a session cookie scoped to the
 wrong hostname, because all three are enforced by the browser and nowhere else.
 It needs the API on `http://127.0.0.1:8010` and starts the frontend itself on
 port 3101.
+
+## Application statuses
+
+Statuses are configuration, not code. **Admin → Applications → Statuses** owns
+the list, the wording staff see, the wording applicants see, and — most
+importantly — `allowed_transitions`, the graph of where an application may move
+next.
+
+`app/Support/ApplicationStage.php` keeps the 16 constants as the *keys* every
+column, filter and automation rule already speaks, and as the seed. The database
+is the source of truth: `ApplicationStatusDefinitionSeeder` writes the shipped
+graph into it unchanged, and `ApplicationStatusRegistry` reads it, falling back
+to the constants if the table is empty so a fresh install still works.
+
+A status marked internal is never shown to an applicant by name; it projects
+down to "in review". That holds even when an administrator sets applicant
+wording, so configuring a status cannot leak a pipeline name.
 
 ## Checking an application's status
 
