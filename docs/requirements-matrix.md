@@ -30,7 +30,7 @@ service exists but nothing reaches it.
 | § | Requirement | Status | Existing | Missing | Key files | Security | Data | Phase |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Reusable multi-form platform | `COMPLETE` | forms/versions/categories/audiences | — | `Form`, `FormVersion` | — | — | — |
-| 2 | Remove applicant portal & accounts | `MISSING` | portal still live | whole removal | `src/app/student/`, `StudentIdentityService` | removes an auth surface | re-key applications to email | **P0** |
+| 2 | Remove applicant portal & accounts | `COMPLETE` | portal, identity service, student and trainer roles all removed; token flows replace them | — | tokens, `DocumentRequestController` | closed a panel-access escalation | trainers migrated to faculty_reviewer | — |
 | 3 | Status tracking without an account | `COMPLETE` | token page, hashed/expiring/revocable | — | `ApplicationStatusController` | token is the credential | tracking tokens issued on submit | — |
 | 4 | Configurable status engine | `COMPLETE` | registry + admin + seeded graph | — | `ApplicationStatusRegistry` | internal stages never shown | seeder reproduces shipped graph | — |
 | 5 | Workflow engine (WHEN/IF/THEN) | `COMPLETE` | triggers, conditions, actions | — | `AutomationEngine` | — | — | — |
@@ -59,7 +59,7 @@ service exists but nothing reaches it.
 | 28 | Granular capabilities | `COMPLETE` | 11 roles / 44 permissions | — | spatie/permission | server-side enforced | — | — |
 | 29 | Per-form access control | `COMPLETE` | — | — | `FormAccessService` | UI+API+export | — | — |
 | 30 | Content access policy | `PARTIAL` | form/category scoping | reusable policy for pages/posts/categories | `ResourceScopeService` | — | — | P2 |
-| 31 | Application catalogue | `PARTIAL` | categories, audiences, cards | "Başvurularım" must go (§2) | `PublicCatalogService` | — | — | **P0** |
+| 31 | Application catalogue | `COMPLETE` | categories, audiences, cards; no applicant dashboard entry points | — | `PublicCatalogService` | — | — | — |
 
 ---
 
@@ -121,8 +121,8 @@ service exists but nothing reaches it.
 | 76 | Responsive public UX | `PARTIAL` | status page verified at 390px | multi-step, uploads, date fields, dropdowns unverified on mobile | `site.css` | — | — | **VERIFY** |
 | 77 | Minimal application experience | `COMPLETE` | logo/title/intro/progress/steps/save/submit | — | `FormRenderer.tsx` | no admin concepts exposed | — | — |
 | 78 | Confirmation experience | `PARTIAL` | reference + message shown | **email not masked** (`e***@example.com`); no tracking link shown | `FormRenderer.tsx` | full address displayed | — | **P1** |
-| 79 | Editing after submission | `PARTIAL` | 4 modes enforced at `update()` | **no admin UI for `edit_policy`**; no "X days" mode; reopen action lives in the **trainer panel** that §2 removes | `ApplicationEditPolicyService` | enforced server-side | — | **P0** (§2 dependency) |
-| 80 | Document request flow | `MISSING` | table + service + admin request | **applicant path unreachable**: `submitStudentResponse` called only from the unregistered Student panel; `/me/documents` is read-only; no token upload page | `DocumentRequestService` | needs its own scoped token | — | **P0** (§2 dependency) |
+| 79 | Editing after submission | `PARTIAL` | 4 modes enforced at `update()`; request-correction now in the admin panel | **no admin UI for `edit_policy`**; no "X days" mode | `ApplicationEditPolicyService` | enforced server-side | — | **P1** |
+| 80 | Document request flow | `COMPLETE` | staff request + secure link + applicant upload page; application returns to review | email delivery of the link is queued but unverified in production | `DocumentRequestController` | token scoped to one request, revoked on use | — | **VERIFY** |
 | 81 | Form responsible staff | `PARTIAL` | `user_form_scopes`, `assigned_to` | not surfaced in form settings as responsible staff / default assignee / recipients | `FormAccessService` | — | — | P2 |
 | 82 | Archiving closed forms | `MISSING` | soft delete only | archive state: admin-visible, keeps submissions, refuses new ones | `forms` | — | new state | **P2** |
 | 83 | Soft delete | `PARTIAL` | forms, submissions, candidates | permanent delete not audited; users hard-delete | models | deletion needs permission | — | P2 |
