@@ -68,12 +68,12 @@ service exists but nothing reaches it.
 | § | Requirement | Status | Existing | Missing | Key files | Security | Data | Phase |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 32 | Remove "Events" placement concept | `N/A` | no such concept; forms attach to publications/categories/pages | — | `FormPublication` | — | — | — |
-| 33 | Page / slug management | `MISSING` | `site_pages` has 5 columns | content, parent, template, order, featured image, slug-collision guard | `site_pages` | — | new columns | **P2** |
-| 34 | SEO / meta | `MISSING` | none | meta title/description, canonical, robots, social image | `site_pages` | noindex control matters for token pages | new columns | **P2** |
+| 33 | Page / slug management | `COMPLETE` | parent, content, template, order, image, slug guard, admin screen | — | `SitePageResource` | — | migration applied | — |
+| 34 | SEO / meta | `COMPLETE` | meta title, description, canonical, noindex, fed into the page head | social image | `SitePageResource` | noindex honoured | — | — |
 | 35 | Admin navigation architecture | `PARTIAL` | Filament groups | align to §35 task grouping | panel providers | — | — | P3 |
 | 36 | WordPress functional coverage | `N/A` | Posts/Media/Appearance/Plugins have no counterpart | — | — | — | — | — |
 | 37 | No file manager / code editor | `COMPLETE` | none exists, none should | — | — | **no code-execution surface** | — | — |
-| 38 | Content sanitisation | `PARTIAL` | `ContentSafetyService` | not verified end to end against stored XSS | `ContentSafetyService` | see §75 | — | **VERIFY** |
+| 38 | Content sanitisation | `COMPLETE` | plain-text filter plus an allowlist rich-text sanitiser applied on save | — | `ContentSafetyService` | page body is the only rendered-as-markup field | — | — |
 | 39 | File upload security | `COMPLETE` | extension **and** MIME allowlists, size, safe names, protected downloads, audit | antivirus hook (future) | `SecureFileService` | strong | — | — |
 | 40 | Privacy / KVKK module | `COMPLETE` | versioned consent | — | `ConsentRecord` | consent not rewritten | — | — |
 | 41 | Data subject requests | `COMPLETE` | — | — | `DataSubjectRequestService` | legal hold respected | — | — |
@@ -117,7 +117,7 @@ service exists but nothing reaches it.
 | 72 | Observability / health | `PARTIAL` | db, cache, queue, storage, failed jobs, scheduler | pending migrations, PHP extensions, PDF engine, mail transport, cache-header check (§69) | `SystemHealthService` | — | — | **P1** |
 | 73 | Versioned migrations | `COMPLETE` | Laravel runner, no manual SQL | destructive-migration warning | `database/migrations` | — | — | — |
 | 74 | Testing critical behaviour | `PARTIAL` | 241 backend / 96 unit / 27 e2e | §75 matrix not executed | `tests/` | — | — | **P0** |
-| 75 | Security test cases | `PARTIAL` | some covered incidentally | 11-point matrix not executed and recorded | `tests/Feature` | the point of the section | — | **P0** |
+| 75 | Security test cases | `COMPLETE` | all 11 executed as `SecurityMatrixTest`, 12 tests | penetration testing by a third party | `tests/Feature/SecurityMatrixTest.php` | stored-XSS surface closed | — | — |
 | 76 | Responsive public UX | `PARTIAL` | status page verified at 390px | multi-step, uploads, date fields, dropdowns unverified on mobile | `site.css` | — | — | **VERIFY** |
 | 77 | Minimal application experience | `COMPLETE` | logo/title/intro/progress/steps/save/submit | — | `FormRenderer.tsx` | no admin concepts exposed | — | — |
 | 78 | Confirmation experience | `PARTIAL` | reference + message shown | **email not masked** (`e***@example.com`); no tracking link shown | `FormRenderer.tsx` | full address displayed | — | **P1** |
