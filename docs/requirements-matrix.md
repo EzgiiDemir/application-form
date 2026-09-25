@@ -99,7 +99,7 @@ service exists but nothing reaches it.
 | 61 | Spam / rate limit | `COMPLETE` | honeypot, timing, split budgets | CAPTCHA adapter (future) | `config/forms.php` | shared-IP safe | — | — |
 | 62 | Admin UX consistency | `COMPLETE` | Filament design system | — | panels | — | — | — |
 | 63 | Operational dashboard | `PARTIAL` | `OperationsDashboard` | not audited against the §63 card list | `OperationsDashboard` | metrics must respect scope | — | P2 |
-| 64 | Search | `PARTIAL` | reference/name/email/phone | ID/passport gated for authorized users only | `FormSubmissionResource` | sensitive fields in suggestions | — | P2 |
+| 64 | Search | `COMPLETE` | table search plus panel-wide global search over applications, applicants, forms and pages | ID/passport deliberately excluded | `FormSubmissionResource` | results never exceed the searcher's scope | — | — |
 | 65 | Exam / post synchronisation | `BLOCKED` | no sync service; no exam↔post relationship found | product definition | — | — | — | **BLOCKED** |
 | 66 | Shortcodes / blocks | `N/A` | equivalent is `/apply/{slug}` | — | — | — | — | — |
 | 67 | Clean application URLs | `COMPLETE` | slug + redirect aliases | — | `RouteAlias` | no internal ids | — | — |
