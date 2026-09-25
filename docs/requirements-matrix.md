@@ -37,7 +37,7 @@ service exists but nothing reaches it.
 | 6 | Form metadata & publishing | `COMPLETE` | — | — | `FormPublication` | — | — | — |
 | 7 | Continuous vs periodic forms | `COMPLETE` | 3 availability modes | — | `FormAvailabilityService` | — | — | — |
 | 8 | Multi-page forms | `COMPLETE` | — | — | `FormPage` | — | — | — |
-| 9 | 12-column responsive grid | `MISSING` | fields stack vertically | width per breakpoint, row/column model, builder UI, renderer | `form_fields`, `FormRenderer.tsx` | — | new columns; version-safe | **P1** |
+| 9 | 12-column responsive grid | `COMPLETE` | 12-column grid, 1-12 spans per breakpoint, builder control, renderer support | explicit row/column containers beyond pages | `field-width.ts`, `site.css` | — | widths live in field settings, versioned | — |
 | 10 | Field types | `PARTIAL` | 62 registered | decimal, toggle, gender, birth date, age, department, rich-text input | `config/form_fields.php` | — | — | P2 |
 | 11 | Field settings incl. PII flags | `COMPLETE` | — | — | `form_fields` | encrypt_value, is_sensitive | — | — |
 | 12 | Conditional logic rule engine | `COMPLETE` | — | — | `FormRulesEngine` | — | — | — |
