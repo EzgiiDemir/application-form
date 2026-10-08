@@ -39,3 +39,4 @@ frontend/.playwright/
 # like it contains the code but does not.
 /backend/
 /frontend/
+.tools/
